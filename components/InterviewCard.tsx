@@ -1,10 +1,12 @@
+"use client";
+
 import dayjs from "dayjs";
 import Image from "next/image";
 import React from "react";
-
-import { getRandomInterviewCover } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+import { getCoverForId } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import DisplayTechIcons from "@/components/DisplayTechIcons";
 
 interface Feedback {
@@ -18,7 +20,7 @@ interface InterviewCardProps {
     userId: string;
     role: string;
     type: string;
-    techstack: string[]; // from DB or constants
+    techstack: string[];
     createdAt: string | Date;
     feedback?: Feedback;
 }
@@ -31,14 +33,12 @@ const InterviewCard = ({
                            createdAt,
                            feedback,
                        }: InterviewCardProps) => {
-
     const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
     const formattedDate = dayjs(
         feedback?.createdAt || createdAt || Date.now()
     ).format("MMM D YYYY");
 
-    // IMPORTANT: generate random cover ONCE to avoid hydration mismatch
-    const cover = getRandomInterviewCover();
+    const cover = getCoverForId(interviewId);
 
     return (
         <div className="card-border w-[360px] max-sm:w-full min-h-96">
@@ -59,22 +59,12 @@ const InterviewCard = ({
 
                 <div className="flex flex-row gap-5 mt-3 items-center">
                     <div className="flex flex-row gap-2 items-center">
-                        <Image
-                            src="/calendar.svg"
-                            alt="calendar"
-                            width={22}
-                            height={22}
-                        />
+                        <Image src="/calendar.svg" alt="calendar" width={22} height={22} />
                         <p>{formattedDate}</p>
                     </div>
 
                     <div className="flex flex-row gap-2 items-center">
-                        <Image
-                            src="/star.svg"
-                            alt="star"
-                            width={22}
-                            height={22}
-                        />
+                        <Image src="/star.svg" alt="star" width={22} height={22} />
                         <p>{feedback?.totalScore || "---"}/100</p>
                     </div>
                 </div>
@@ -86,17 +76,15 @@ const InterviewCard = ({
             </div>
 
             <div className="flex flex-row justify-between items-center p-4">
-                <DisplayTechIcons techStack={techstack || []} />
+                <DisplayTechIcons techs={techstack || []} />
 
                 <Button className="btn-primary">
                     <Link
-                        href={
-                            feedback
-                                ? `/interview/${interviewId}/feedback`
-                                : `/interview/${interviewId}`
-                        }
+                        href={`/interview?role=${encodeURIComponent(role)}
+                        &type=${encodeURIComponent(type || "mock")}
+                        &techstack=${encodeURIComponent(techstack.join(","))}`}
                     >
-                        {feedback ? "Check Feedback" : "View Interview"}
+                        Start Interview
                     </Link>
                 </Button>
             </div>

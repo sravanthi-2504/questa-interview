@@ -15,8 +15,9 @@ export default function DisplayTechIcons({ techs }: { techs: string[] | string |
             : [];
 
     useEffect(() => {
-        getTechLogos(normalized).then((result) => setLogos(result));
+        setLogos(getTechLogos(normalized));
     }, [techs]);
+
 
     return (
         <div className="flex gap-2 items-center">

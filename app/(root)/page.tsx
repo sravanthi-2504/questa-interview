@@ -31,12 +31,16 @@ async function Home() {
                     </p>
 
                     <Button asChild className="btn-primary max-sm:w-full">
-                        <Link href="/interview">Start an Interview</Link>
+                        <Link
+                            href={`/interview?role=Software Engineer&level=Mid-Level&type=Technical&techstack=React,Node.js`}
+                        >
+                            Start an Interview
+                        </Link>
                     </Button>
                 </div>
 
                 <Image
-                    src="/robot.png"
+                    src="/robot.webp"
                     alt="robo-dude"
                     width={400}
                     height={400}

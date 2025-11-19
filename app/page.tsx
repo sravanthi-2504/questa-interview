@@ -1,16 +1,33 @@
+"use client";
+
 import Image from "next/image";
 import InterviewCard from "@/components/InterviewCard";
 import { interviewList } from "@/constants";
 import Navbar from "@/components/ui/Navbar";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabaseBrowser";
+
 
 export default function HomePage() {
+    const [session, setSession] = useState(null);
+
+    useEffect(() => {
+        const supabase = supabaseBrowser();
+
+        async function loadSession() {
+            const { data } = await supabase.auth.getSession();
+            setSession(data.session);
+        }
+
+        loadSession();
+    }, []);
+
     return (
         <div>
-            <Navbar />   {/* Only on home page */}
+            <Navbar />
 
-            {/* Main Page Content */}
             <div className="root-layout animate-fadeIn pb-20">
-
                 {/* HERO SECTION */}
                 <section className="card-cta relative overflow-hidden mt-10">
                     {/* LEFT TEXT */}
@@ -23,15 +40,26 @@ export default function HomePage() {
                             Practice on real interview questions & get instant feedback
                         </p>
 
-                        <button className="btn-primary w-48 mt-3">
-                            Start an Interview
-                        </button>
+                        {/* ⭐ LOGIN CHECK BUTTON ⭐ */}
+                        {!session ? (
+                            <Link href="/auth/sign-in">
+                                <button className="btn-primary w-48 mt-3">
+                                    Start an Interview
+                                </button>
+                            </Link>
+                        ) : (
+                            <Link href="/interview/setup">
+                                <button className="btn-primary w-48 mt-3">
+                                    Start an Interview
+                                </button>
+                            </Link>
+                        )}
                     </div>
 
                     {/* ROBOT IMAGE */}
                     <div className="relative w-[420px] h-[320px]">
                         <Image
-                            src="/robo.png"
+                            src="/robot.webp"
                             alt="robot"
                             fill
                             priority
@@ -73,7 +101,6 @@ export default function HomePage() {
                         />
                     ))}
                 </section>
-
             </div>
         </div>
     );

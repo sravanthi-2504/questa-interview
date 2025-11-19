@@ -1,50 +1,56 @@
-import { interviewCovers, mappings } from "@/constants";
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { mappings } from "@/constants/mappings";
-
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-const techIconBaseURL = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons";
+// ----------------------------
+// ✅ GET TECH LOGOS
+// ----------------------------
+export function getTechLogos(techs: string[] | string | undefined) {
+    if (!techs) return [];
 
-const normalizeTechName = (tech: string) => {
-    const key = tech.toLowerCase().replace(/\.js$/, "").replace(/\s+/g, "");
-    return mappings[key as keyof typeof mappings];
-};
+    const techArray = Array.isArray(techs)
+        ? techs
+        : techs.split(",").map(t => t.trim().toLowerCase());
 
-const checkIconExists = async (url: string) => {
-    try {
-        const response = await fetch(url, { method: "HEAD" });
-        return response.ok; // Returns true if the icon exists
-    } catch {
-        return false;
-    }
-};
+    const logos: Record<string, string> = {
+        react: "/logos/react.png",
+        "next.js": "/logos/nextjs.png",
+        nextjs: "/logos/nextjs.png",
+        typescript: "/logos/typescript.png",
+        javascript: "/logos/javascript.png",
+        node: "/logos/node.png",
+        "node.js": "/logos/node.png",
+        express: "/logos/express.png",
+        mongodb: "/logos/mongodb.png",
+        tailwind: "/logos/tailwind.png",
+        html: "/logos/html.png",
+        css: "/logos/css.png",
+        java: "/logos/java.png",
+        python: "/logos/python.png",
+    };
 
-export const getTechLogos = async (techArray: string[] = []) => {
-    const logoURLs = techArray.map((tech) => {
-        const normalized = normalizeTechName(tech);
-        return {
-            tech,
-            url: `${techIconBaseURL}/${normalized}/${normalized}-original.svg`,
-        };
-    });
+    return techArray.map((tech) => ({
+        tech,
+        url: logos[tech] || "/logos/default-tech.png",
+    }));
+}
 
-    const results = await Promise.all(
-        logoURLs.map(async ({ tech, url }) => ({
-            tech,
-            url: (await checkIconExists(url)) ? url : "/tech.svg",
-        }))
-    );
+// ----------------------------
+// ✅ GET COVER IMAGES (companies)
+// ----------------------------
+export function getCoverForId(id: string | number) {
+    const covers: Record<string, string> = {
+        "1": "/covers/frontend.png",
+        "2": "/covers/fullstack.png",
+        "3": "/covers/backend.png",
+        adobe: "/covers/adobe.png",
+        amazon: "/covers/amazon.png",
+        pinterest: "/covers/pinterest.png",
+        facebook: "/covers/facebook.png",
+    };
 
-    return results;
-};
-
-
-export const getRandomInterviewCover = () => {
-    const randomIndex = Math.floor(Math.random() * interviewCovers.length);
-    return interviewCovers[randomIndex];
-};
+    return covers[id] || "/covers/default.png";
+}
