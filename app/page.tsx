@@ -7,10 +7,13 @@ import Navbar from "@/components/ui/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
+import { interviewTemplates } from "@/data/interviewTemplates";
+
 
 
 export default function HomePage() {
     const [session, setSession] = useState(null);
+    const [userInterviews, setUserInterviews] = useState([]);
 
     useEffect(() => {
         const supabase = supabaseBrowser();
@@ -20,8 +23,28 @@ export default function HomePage() {
             setSession(data.session);
         }
 
+        async function loadInterviews() {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session) return;
+
+            const { data } = await supabase
+                .from("interviews")
+                .select("*")
+                .eq("user_id", session.user.id)
+                .order("created_at", { ascending: false });
+
+            setUserInterviews(data || []);
+        }
+
         loadSession();
+        loadInterviews();
     }, []);
+
+
+
 
     return (
         <div>
@@ -59,7 +82,7 @@ export default function HomePage() {
                     {/* ROBOT IMAGE */}
                     <div className="relative w-[420px] h-[320px]">
                         <Image
-                            src="/robot.webp"
+                            src="/robot.png"
                             alt="robot"
                             fill
                             priority
@@ -68,39 +91,53 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                {/* YOUR INTERVIEWS */}
-                <h2>Your Interviews</h2>
+                {/* my INTERVIEWS */}
+                {/* my INTERVIEWS */}
+                <h2>My Interviews</h2>
 
                 <section className="interviews-section">
-                    {interviewList.map((item) => (
+                    {userInterviews.length === 0 && (
+                        <p className="text-gray-400">You have no interviews yet.</p>
+                    )}
+
+                    {userInterviews.map((item) => (
                         <InterviewCard
                             key={item.id}
-                            interviewId={item.id.toString()}
-                            userId="1"
-                            role={item.title}
-                            type={item.level}
-                            techstack={item.tech}
-                            createdAt={item.date}
+                            interviewId={item.id}
+                            userId={item.user_id}
+                            role={item.role}
+                            type={item.type}
+                            techstack={item.techstack}
+                            company={item.company}
+                            createdAt={item.created_at}
+                            feedback={{
+                                totalScore: item.score,
+                                finalAssessment: item.feedback,
+                            }}
                         />
                     ))}
                 </section>
+
 
                 {/* TAKE AN INTERVIEW */}
                 <h2>Take an interview</h2>
 
                 <section className="interviews-section">
-                    {interviewList.map((item) => (
+                    {interviewTemplates.map((item) => (
                         <InterviewCard
-                            key={item.id}
-                            interviewId={item.id.toString()}
+                            key={item.company}
+                            interviewId={item.company}
                             userId="1"
-                            role={item.title}
-                            type={item.level}
-                            techstack={item.tech}
+                            role={item.role}
+                            type={item.type}
+                            techstack={item.techstack}
+                            company={item.company}
+                            logo={item.logo}
                             createdAt={item.date}
                         />
                     ))}
                 </section>
+
             </div>
         </div>
     );

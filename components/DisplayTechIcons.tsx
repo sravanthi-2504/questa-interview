@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getTechLogos } from "@/lib/utils";
 
 export default function DisplayTechIcons({ techs }: { techs: string[] | string | undefined }) {
-    const [logos, setLogos] = useState([]);
+    const [logos, setLogos] = useState<{ tech: string; url: string }[]>([]);
 
     // Normalize techs into an array safely
     const normalized = Array.isArray(techs)
@@ -16,8 +16,7 @@ export default function DisplayTechIcons({ techs }: { techs: string[] | string |
 
     useEffect(() => {
         setLogos(getTechLogos(normalized));
-    }, [techs]);
-
+    }, [normalized]);
 
     return (
         <div className="flex gap-2 items-center">
