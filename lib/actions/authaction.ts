@@ -2,7 +2,6 @@
 
 import { supabaseServer } from "@/lib/supabaseServer";
 
-
 // ======================
 // SIGN UP
 // ======================
@@ -23,7 +22,7 @@ export async function signUp({ email, password, name }: any) {
 }
 
 // ======================
-// SIGN IN  (ONLY ONE VERSION – KEEP THIS ONE)
+// SIGN IN  (SERVER ACTION VERSION)
 // ======================
 export async function signIn({ email, password }: any) {
     const supabase = await supabaseServer();
@@ -36,9 +35,12 @@ export async function signIn({ email, password }: any) {
     });
 
     console.log("🟢 SUPABASE SIGN-IN DATA:", data);
-    console.log("🔴 SUPABASE SIGN-IN ERROR:", error);
 
-    if (error) return { error: error.message };
+    if (error) {
+        console.error("🔴 SUPABASE SIGN-IN ERROR:", error.message);
+        return { error: error.message };
+    }
+
     return { user: data.user };
 }
 

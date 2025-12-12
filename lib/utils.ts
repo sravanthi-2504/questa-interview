@@ -1,89 +1,65 @@
-// lib/utils.ts
-
-import { clsx } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// ----------------------
-// 1. Shadcn class merger
-// ----------------------
-export function cn(...inputs: any[]) {
+export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// ----------------------
-// 2. Tech Stack Logos
-// ----------------------
-export function getTechLogos(techs: string[]) {
-    if (!Array.isArray(techs)) return [];
+// -------------------------------
+// COMPANY LOGOS
+// -------------------------------
+export function getCompanyLogo(company: string = "default") {
+    const logos: Record<string, string> = {
+        amazon: "/covers/amazon.png",
+        pinterest: "/covers/pinterest.png",
+        facebook: "/covers/facebook.png",
+        yahoo: "/covers/yahoo.png",
+        skype: "/covers/skype.png",
+        reddit: "/covers/reddit.png",
+        default: "/covers/default.png"
+    };
 
+    return logos[company.toLowerCase()] ?? logos["default"];
+}
+
+// -------------------------------
+// INTERVIEW COVER IMAGE
+// -------------------------------
+export function getCoverForId(id: string) {
+    // Simple mapping using ID for variety
+    const covers = [
+        "/covers/cover1.png",
+        "/covers/cover2.png",
+        "/covers/cover3.png",
+        "/covers/cover4.png",
+        "/covers/cover5.png",
+    ];
+
+    if (!id) return covers[0];
+
+    const index = Math.abs(id.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % covers.length;
+
+    return covers[index];
+}
+
+// --- ADD THIS NEW FUNCTION ---
+export function getTechLogos(techs: string[]) {
     const map: Record<string, string> = {
         react: "/logos/react.png",
-        "next.js": "/logos/nextjs.jpeg",
-        nextjs: "/logos/nextjs.jpeg",
-        javascript: "/logos/javascript.png",
-        typescript: "/logos/typescript.png",
+        "next.js": "/logos/nextjs.png",
+        nextjs: "/logos/nextjs.png",
         node: "/logos/node.png",
         "node.js": "/logos/node.png",
         express: "/logos/express.png",
-        java: "/logos/java.png",
-        python: "/logos/python.png",
         mongodb: "/logos/mongodb.png",
-        html: "/logos/html.png",
-        css: "/logos/css.png",
-        tailwind: "/logos/tailwind.png",
-
-        default: "/logos/default-tech.png",
+        typescript: "/logos/typescript.png",
+        javascript: "/logos/javascript.png",
+        default: "/logos/default.png",
     };
 
     return techs.map((t) => {
-        const key = t.toLowerCase();
-        return {
-            tech: t,
-            url: map[key] || map.default,
-        };
+        const key = t.trim().toLowerCase();
+        return map[key] || map["default"];
     });
 }
 
-// ----------------------
-// 3. Company Logos
-// (your logos are inside /covers folder)
-// ----------------------
-export function getCompanyLogo(company: string = "default") {
-    const map: Record<string, string> = {
-        amazon: "/covers/amazon.png",
-        facebook: "/covers/facebook.png",
-        pinterest: "/covers/pinterest.png",
-        quora: "/covers/quora.png",
-        reddit: "/covers/reddit.png",
-        skype: "/covers/skype.png",
-        spotify: "/covers/spotify.png",
-        telegram: "/covers/telegram.png",
-        yahoo: "/covers/yahoo.png",
-        tiktok: "/covers/tiktok.svg",
-        default: "/covers/default.png",
-    };
-
-    return map[company.toLowerCase()] || map.default;
-}
-
-// ----------------------
-// 4. Interview Cover (these must exist)
-// ----------------------
-export function getCoverForId(id: string) {
-    if (!id) return "/covers/default.png";
-
-    const covers = [
-        "/covers/frontend.png",
-        "/covers/backend.png",
-        "/covers/fullstack.png",
-        "/covers/hostingerr.png",
-        "/covers/default.png",
-    ];
-
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-        hash = (hash + id.charCodeAt(i) * 31) % covers.length;
-    }
-
-    return covers[hash];
-}

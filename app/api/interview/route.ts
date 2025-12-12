@@ -3,110 +3,128 @@ import Groq from "groq-sdk";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-/* ============================================================
-   Helper: Ask Groq to generate EXACT difficulty questions
-   ============================================================ */
-async function generateQuestions(
-    count: number,
-    difficulty: "easy" | "medium" | "hard",
-    type: string,
-    techstack: string[] | string
-) {
-    const tech = Array.isArray(techstack) ? techstack.join(", ") : techstack;
-
-    const prompt = `
-Generate EXACTLY ${count} interview questions.
-Difficulty MUST be strictly "${difficulty}".
-
-Return ONLY a JSON array:
-[
-  { "question": "string", "difficulty": "${difficulty}" }
-]
-
-Rules:
-- No explanations.
-- No markdown.
-- No other difficulty types.
-- The array MUST contain exactly ${count} items.
-- Every item MUST have difficulty: "${difficulty}".
-
-Round Type: ${type}
-Tech Stack: ${tech}
-
-IF TYPE = "Coding":
-- Use LeetCode/HackerRank/CodeChef/GFG style coding problems.
-
-IF TYPE = "Behavioral":
-- ALL questions must be scenario-based.
-- MUST start with:
-  "Tell me about a time..."
-  "Describe a situation..."
-  "How would you handle..."
-
-IF TYPE = "Managerial":
-- Focus on leadership, conflict, deadlines, decision making.
-`;
-
-    const response = await groq.chat.completions.create({
+/* ------------------------------------------
+   Helper: LLM call
+------------------------------------------ */
+async function askLLM(prompt: string) {
+    const r = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
+        temperature: 0.4,
     });
 
-    let raw = response.choices?.[0]?.message?.content || "";
+    return r.choices?.[0]?.message?.content ?? "";
+}
 
-    // Clean model formatting
-    raw = raw.replace(/```json|```/g, "").trim();
+/* ------------------------------------------
+   Helper: Clean + parse a JSON array
+------------------------------------------ */
+function forceParseArray(raw: string) {
+    const cleaned = raw
+        .replace(/```json/gi, "")
+        .replace(/```/gi, "")
+        .trim();
 
-    // Extract JSON array safely
-    const start = raw.indexOf("[");
-    const end = raw.lastIndexOf("]") + 1;
+    const start = cleaned.indexOf("[");
+    const end = cleaned.lastIndexOf("]") + 1;
 
-    if (start === -1 || end <= start) return [];
+    if (start === -1 || end === 0) return [];
 
     try {
-        const arr = JSON.parse(raw.slice(start, end));
-        return arr;
-    } catch (e) {
-        console.error("JSON PARSE FAILED:", raw);
+        return JSON.parse(cleaned.slice(start, end));
+    } catch {
         return [];
     }
 }
 
-/* ============================================================
-   API ROUTE
-   ============================================================ */
+/* ------------------------------------------
+   Generate N questions for ONE difficulty
+------------------------------------------ */
+async function generateDifficulty(
+    type: string,
+    tech: string,
+    diff: "easy" | "medium" | "hard",
+    count: number
+) {
+    if (count <= 0) return [];
+
+    // Normalize round type
+    let round = type.toLowerCase();
+
+    if (round === "technical") round = "coding";
+    if (round === "non-technical") round = "behavioral";
+
+    const prompt = `
+Generate EXACTLY ${count} interview questions.
+
+Difficulty MUST be "${diff}" ONLY.
+Return ONLY a JSON array:
+[
+  { "question": "string", "difficulty": "${diff}" }
+]
+
+Round type: ${round}
+Tech stack: ${tech}
+
+Rules:
+- No extra text
+- No markdown
+- Only ${diff} difficulty questions
+
+If round = "coding":
+  - Use LeetCode / HackerRank style
+If round = "behavioral":
+  - Start ALL questions with:
+    "Tell me about a time..."
+    "Describe a situation..."
+    "How would you handle..."
+If round = "managerial":
+  - Leadership, conflict, deadlines only.
+If round = "hr":
+  - Culture fit, strengths, weaknesses.
+If round = "aptitude":
+  - Math, logic, reasoning questions.
+`;
+
+    const raw = await askLLM(prompt);
+    const arr = forceParseArray(raw);
+
+    return arr.map((q: any) => ({
+        question: q?.question ?? "",
+        difficulty: diff,
+    }));
+}
+
+/* ------------------------------------------
+   POST HANDLER
+------------------------------------------ */
 export async function POST(req: Request) {
     try {
         const body = await req.json();
 
-        const easy = Number(body.easy) || 0;
-        const medium = Number(body.medium) || 0;
-        const hard = Number(body.hard) || 0;
+        const type = body.type || "Technical";
+        const tech = Array.isArray(body.techstack)
+            ? body.techstack.join(", ")
+            : body.techstack || "";
 
-        const type = body.type;
-        const techstack = body.techstack;
+        const easy = Number(body.easy || 0);
+        const medium = Number(body.medium || 0);
+        const hard = Number(body.hard || 0);
 
-        let final: any[] = [];
+        // Generate each block
+        const results: any[] = [];
 
-        if (easy > 0) {
-            const res = await generateQuestions(easy, "easy", type, techstack);
-            final.push(...res);
-        }
+        if (easy > 0) results.push(...(await generateDifficulty(type, tech, "easy", easy)));
+        if (medium > 0)
+            results.push(...(await generateDifficulty(type, tech, "medium", medium)));
+        if (hard > 0) results.push(...(await generateDifficulty(type, tech, "hard", hard)));
 
-        if (medium > 0) {
-            const res = await generateQuestions(medium, "medium", type, techstack);
-            final.push(...res);
-        }
-
-        if (hard > 0) {
-            const res = await generateQuestions(hard, "hard", type, techstack);
-            final.push(...res);
-        }
+        // FINAL check
+        const final = results.filter((q) => q.question.trim() !== "");
 
         return NextResponse.json(final);
     } catch (err) {
-        console.error("API ERROR:", err);
+        console.error("Interview API Error:", err);
         return NextResponse.json([], { status: 500 });
     }
 }

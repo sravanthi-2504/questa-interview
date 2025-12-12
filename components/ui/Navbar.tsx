@@ -7,6 +7,8 @@ import { useState } from "react";
 
 export default function Navbar() {
     const pathname = usePathname();
+    const hideNavLinks = pathname === "/"; // Only hide Home/Features/Pricing/About on homepage
+
     const [open, setOpen] = useState(false);
 
     const navItems = [
@@ -25,50 +27,56 @@ export default function Navbar() {
                     Questa<span className="text-indigo-400">.</span>
                 </Link>
 
-                {/* Desktop Nav */}
-                <div className="hidden md:flex gap-6">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`text-sm hover:text-indigo-400 transition ${
-                                pathname === item.href ? "text-indigo-400" : "text-gray-300"
-                            }`}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-                </div>
+                {/* Desktop Nav — Hidden only on homepage */}
+                {!hideNavLinks && (
+                    <div className="hidden md:flex gap-6">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`text-sm hover:text-indigo-400 transition ${
+                                    pathname === item.href
+                                        ? "text-indigo-400"
+                                        : "text-gray-300"
+                                }`}
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                    </div>
+                )}
 
-                {/* Right buttons */}
+                {/* Sign In / Sign Up — ALWAYS visible */}
                 <div className="hidden md:flex items-center gap-4">
                     <Link
-                        href="/sign-in"   // ✅ FIXED
+                        href="/sign-in"
                         className="text-sm text-gray-200 hover:text-indigo-400 transition"
                     >
                         Sign In
                     </Link>
 
                     <Link
-                        href="/sign-up"   // ✅ FIXED
+                        href="/sign-up"
                         className="px-4 py-2 text-sm bg-indigo-500 hover:bg-indigo-600 transition rounded-md text-white"
                     >
                         Sign Up
                     </Link>
                 </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className="md:hidden"
-                    onClick={() => setOpen(!open)}
-                    aria-label="Open Menu"
-                >
-                    {open ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                {/* Mobile Menu Button — hidden on homepage */}
+                {!hideNavLinks && (
+                    <button
+                        className="md:hidden"
+                        onClick={() => setOpen(!open)}
+                        aria-label="Open Menu"
+                    >
+                        {open ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                )}
             </div>
 
-            {/* Mobile Nav */}
-            {open && (
+            {/* Mobile Nav — hidden on homepage */}
+            {!hideNavLinks && open && (
                 <div className="md:hidden bg-black/40 backdrop-blur-md border-t border-white/10 px-4 py-4 flex flex-col gap-4">
                     {navItems.map((item) => (
                         <Link
@@ -82,7 +90,7 @@ export default function Navbar() {
                     ))}
 
                     <Link
-                        href="/sign-in"   // ✅ FIXED
+                        href="/sign-in"
                         onClick={() => setOpen(false)}
                         className="text-gray-200 text-sm hover:text-indigo-400 transition"
                     >
@@ -90,9 +98,9 @@ export default function Navbar() {
                     </Link>
 
                     <Link
-                        href="/sign-up"   // ✅ FIXED
+                        href="/sign-up"
                         onClick={() => setOpen(false)}
-                        className="px-4 py-2 mt-1 text-sm bg-indigo-500 hover:bg-indigo-600 rounded-md text-white text-center"
+                        className="px-4 py-2 text-sm bg-indigo-500 hover:bg-indigo-600 rounded-md text-white text-center"
                     >
                         Sign Up
                     </Link>

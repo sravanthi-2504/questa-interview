@@ -89,12 +89,18 @@ const InterviewCard = ({
 
                 <Button className="btn-primary">
                     <Link
-                        href={`/interview?role=${encodeURIComponent(role)}&type=${encodeURIComponent(
-                            type || "mock"
-                        )}&techstack=${encodeURIComponent(techstack.join(","))}`}
+                        href={`/interview?role=${encodeURIComponent(role)}
+                            &type=${encodeURIComponent(type)}
+                            &techstack=${encodeURIComponent(techstack.join(","))}
+                            &amount=10
+                            &easy=3
+                            &medium=4
+                            &hard=3
+                        `}
                     >
                         Start Interview
                     </Link>
+
                 </Button>
             </div>
         </div>

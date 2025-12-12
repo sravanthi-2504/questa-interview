@@ -1,144 +1,76 @@
 "use client";
 
-import Image from "next/image";
-import InterviewCard from "@/components/InterviewCard";
-import { interviewList } from "@/constants";
-import Navbar from "@/components/ui/Navbar";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { supabaseBrowser } from "@/lib/supabaseBrowser";
-import { interviewTemplates } from "@/data/interviewTemplates";
-
-
+import Image from "next/image";
 
 export default function HomePage() {
-    const [session, setSession] = useState(null);
-    const [userInterviews, setUserInterviews] = useState([]);
-
-    useEffect(() => {
-        const supabase = supabaseBrowser();
-
-        async function loadSession() {
-            const { data } = await supabase.auth.getSession();
-            setSession(data.session);
-        }
-
-        async function loadInterviews() {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
-            if (!session) return;
-
-            const { data } = await supabase
-                .from("interviews")
-                .select("*")
-                .eq("user_id", session.user.id)
-                .order("created_at", { ascending: false });
-
-            setUserInterviews(data || []);
-        }
-
-        loadSession();
-        loadInterviews();
-    }, []);
-
-
-
-
     return (
-        <div>
-            <Navbar />
+        <div className="min-h-screen text-white">
 
-            <div className="root-layout animate-fadeIn pb-20">
-                {/* HERO SECTION */}
-                <section className="card-cta relative overflow-hidden mt-10">
-                    {/* LEFT TEXT */}
-                    <div className="flex flex-col gap-5 max-w-xl z-10">
-                        <h2 className="text-white text-4xl font-semibold leading-tight">
+            {/* NAVBAR */}
+            <nav className="flex justify-between items-center px-10 py-6">
+                <div className="flex items-center gap-3">
+                    <Image src="/logo.webp" alt="Questa Logo" width={40} height={40} />
+                    <h1 className="text-2xl font-bold">Questa</h1>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <Link href="/sign-in" className="text-gray-300 hover:text-white">
+                        Sign In
+                    </Link>
+                    <Link
+                        href="/sign-up"
+                        className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 font-semibold"
+                    >
+                        Sign Up
+                    </Link>
+                </div>
+            </nav>
+
+            {/* HERO SECTION */}
+            <section className="px-10 md:px-20 lg:px-32 mt-10">
+                <div className="bg-gradient-to-r from-[#0F0F28] to-[#111133] rounded-3xl p-10 md:flex items-center justify-between">
+
+                    {/* TEXT */}
+                    <div className="md:w-1/2">
+                        <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                             Get Interview Ready with AI-Powered Practice and Feedback
-                        </h2>
+                        </h1>
 
-                        <p className="text-gray-300 text-lg">
-                            Practice on real interview questions & get instant feedback
+                        <p className="mt-4 text-gray-300 text-lg">
+                            Practice with real interview questions & get instant feedback.
                         </p>
 
-                        {/* ⭐ LOGIN CHECK BUTTON ⭐ */}
-                        {!session ? (
-                            <Link href="/auth/sign-in">
-                                <button className="btn-primary w-48 mt-3">
-                                    Start an Interview
+                        <div className="mt-8 flex flex-col md:flex-row gap-4">
+
+                            <Link href="/generate-interview">
+                                <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-semibold">
+                                    Generate Interview Questions
                                 </button>
                             </Link>
-                        ) : (
-                            <Link href="/interview/setup">
-                                <button className="btn-primary w-48 mt-3">
-                                    Start an Interview
+
+                            <Link href="/live-interview/setup">
+                                <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold">
+                                    Start Live Interview
                                 </button>
                             </Link>
-                        )}
+
+                        </div>
                     </div>
 
-                    {/* ROBOT IMAGE */}
-                    <div className="relative w-[420px] h-[320px]">
+                    {/* IMAGE */}
+                    <div className="md:w-1/2 flex justify-center mt-10 md:mt-0">
                         <Image
                             src="/robot.png"
-                            alt="robot"
-                            fill
-                            priority
-                            className="object-contain"
+                            alt="Robot Interview Assistant"
+                            width={400}
+                            height={400}
+                            className="drop-shadow-2xl"
                         />
                     </div>
-                </section>
+                </div>
+            </section>
 
-                {/* my INTERVIEWS */}
-                {/* my INTERVIEWS */}
-                <h2>My Interviews</h2>
-
-                <section className="interviews-section">
-                    {userInterviews.length === 0 && (
-                        <p className="text-gray-400">You have no interviews yet.</p>
-                    )}
-
-                    {userInterviews.map((item) => (
-                        <InterviewCard
-                            key={item.id}
-                            interviewId={item.id}
-                            userId={item.user_id}
-                            role={item.role}
-                            type={item.type}
-                            techstack={item.techstack}
-                            company={item.company}
-                            createdAt={item.created_at}
-                            feedback={{
-                                totalScore: item.score,
-                                finalAssessment: item.feedback,
-                            }}
-                        />
-                    ))}
-                </section>
-
-
-                {/* TAKE AN INTERVIEW */}
-                <h2>Take an interview</h2>
-
-                <section className="interviews-section">
-                    {interviewTemplates.map((item) => (
-                        <InterviewCard
-                            key={item.company}
-                            interviewId={item.company}
-                            userId="1"
-                            role={item.role}
-                            type={item.type}
-                            techstack={item.techstack}
-                            company={item.company}
-                            logo={item.logo}
-                            createdAt={item.date}
-                        />
-                    ))}
-                </section>
-
-            </div>
         </div>
     );
 }
